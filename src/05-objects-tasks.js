@@ -6,7 +6,6 @@
  *                                                                                                *
  ************************************************************************************************ */
 
-
 /**
  * Returns the rectangle object with width and height parameters and getArea() method
  *
@@ -20,10 +19,11 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+  this.getArea = () => this.width * this.height;
 }
-
 
 /**
  * Returns the JSON representation of specified object
@@ -35,10 +35,9 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
-
 
 /**
  * Returns the object of specified type from JSON representation
@@ -51,10 +50,9 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  return Object.setPrototypeOf(JSON.parse(json), proto);
 }
-
 
 /**
  * Css selectors builder
@@ -111,35 +109,89 @@ function fromJSON(/* proto, json */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  order: -1,
+  value: '',
+
+  checkOrder(currentOrder) {
+    if (this.order > currentOrder) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      );
+    }
+    if (
+      currentOrder === this.order
+      && (currentOrder === 0 || currentOrder === 1 || currentOrder === 5)
+    ) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector',
+      );
+    }
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    const copy = { ...this };
+    const currentOrder = 0;
+    copy.checkOrder(currentOrder);
+    copy.order = currentOrder;
+    copy.value = `${value}`;
+    return copy;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const copy = { ...this };
+    const currentOrder = 1;
+    copy.checkOrder(currentOrder);
+    copy.order = currentOrder;
+    copy.value = `${copy.value}#${value}`;
+    return copy;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const copy = { ...this };
+    const currentOrder = 2;
+    copy.checkOrder(currentOrder);
+    copy.order = currentOrder;
+    copy.value = `${copy.value}.${value}`;
+    return copy;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const copy = { ...this };
+    const currentOrder = 3;
+    copy.checkOrder(currentOrder);
+    copy.order = currentOrder;
+    copy.value = `${copy.value}[${value}]`;
+    return copy;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const copy = { ...this };
+    const currentOrder = 4;
+    copy.checkOrder(currentOrder);
+    copy.order = currentOrder;
+    copy.value = `${copy.value}:${value}`;
+    return copy;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const copy = { ...this };
+    const currentOrder = 5;
+    copy.checkOrder(currentOrder);
+    copy.order = currentOrder;
+    copy.value = `${copy.value}::${value}`;
+    return copy;
+  },
+
+  combine(selector1, combinator, selector2) {
+    const copy = { ...this };
+    copy.value = `${selector1.value} ${combinator} ${selector2.value}`;
+    return copy;
+  },
+
+  stringify() {
+    return this.value;
   },
 };
-
 
 module.exports = {
   Rectangle,
